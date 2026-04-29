@@ -35,7 +35,7 @@
     }
     .shell{position:relative;z-index:2;display:grid;grid-template-columns:320px 1fr;min-height:100dvh}
 
-    aside{border-right:1px solid var(--line);padding:16px;background:#0f1827bd;backdrop-filter:blur(8px)}
+    aside{border-right:1px solid var(--line);padding:16px;background:#0f1827bd;backdrop-filter:blur(8px);max-height:100dvh;overflow:auto}
     .brand{display:flex;align-items:flex-start;gap:12px;padding:6px 4px 14px;border-bottom:1px solid var(--line)}
     .brand-mark{width:40px;height:40px;border-radius:8px;background:radial-gradient(circle at 30% 30%, var(--phos) 0%, var(--phos2) 52%, #0d1311 100%);box-shadow:0 0 18px -8px var(--phos)}
     .brand h1{margin:0;font:800 1.5rem/1 'Fraunces',serif;letter-spacing:-.02em}
@@ -51,8 +51,9 @@
     button:hover{border-color:var(--phos2);color:var(--phos)}
     .grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 
-    .plist{display:flex;flex-direction:column;gap:6px;max-height:42vh;overflow:auto}
-    .item{padding:8px;border:1px solid var(--line);border-radius:8px;background:#0d1512}
+    .plist{display:flex;flex-direction:column;gap:6px;max-height:52vh;overflow:auto}
+    .item{padding:8px;border:1px solid var(--line);border-radius:8px;background:#0d1512;cursor:pointer}
+    .item.active{border-color:var(--phos2);box-shadow:inset 0 0 0 1px #7af6a85a;background:#122018}
 
     main{padding:22px 18px 60px;min-width:0}
     .hero{display:grid;grid-template-columns:1fr auto;gap:18px;align-items:end;padding:8px 0 18px;border-bottom:1px solid var(--line);margin-bottom:14px}
@@ -146,8 +147,8 @@
               </div>
             </div>
             <div style="margin-top:10px">
-              <label><input type="checkbox" id="allSensors" style="width:auto" onchange="saveToggles()"> alle Sensoren berücksichtigen</label><br>
-              <label><input type="checkbox" id="allActs" style="width:auto" onchange="saveToggles()"> alle Aktuatoren berücksichtigen</label>
+              <label><input type="checkbox" id="allSensors" style="width:auto"> alle Sensoren berücksichtigen</label><br>
+              <label><input type="checkbox" id="allActs" style="width:auto"> alle Aktuatoren berücksichtigen</label>
             </div>
             <div id="chosen" class="list" style="margin-top:10px"></div>
           </section>
@@ -161,6 +162,7 @@
         <div class="col">
           <section class="card">
             <div class="title">NN Visual (pro Projekt)</div>
+            <div class="small" style="margin-bottom:8px">Zoom: Mausrad · Bewegen: Ziehen · Doppelklick: Reset</div>
             <svg id="graph"></svg>
           </section>
         </div>
