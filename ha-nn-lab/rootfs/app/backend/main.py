@@ -9,7 +9,7 @@ from typing import Any
 
 import requests
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import HTMLResponse
+from fastapi.responses import FileResponse, HTMLResponse
 
 app = FastAPI(title="HA NN Lab", version="0.2.0")
 
@@ -386,3 +386,9 @@ boot();
 async def index() -> HTMLResponse:
     ui_path = Path(__file__).resolve().parent.parent / "frontend" / "ui.html"
     return HTMLResponse(ui_path.read_text(encoding="utf-8"))
+
+
+@app.get("/app.js")
+async def app_js() -> FileResponse:
+    js_path = Path(__file__).resolve().parent.parent / "frontend" / "app.js"
+    return FileResponse(js_path, media_type="application/javascript")
