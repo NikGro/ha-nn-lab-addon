@@ -26,7 +26,23 @@ async function saveToggles(){if(!current)return;Object.assign(find(current),awai
 async function addEntity(k){if(!current)return;const p=find(current),key=k==='sensor'?'sensor_entities':'actuator_entities',sel=byId(k==='sensor'?'sensorSel':'actSel');const set=new Set(p[key]||[]);set.add(sel.value);const payload={};payload[key]=[...set];Object.assign(p,await api('/api/projects/'+current,'PATCH',payload));renderChosen();loadGraph()}
 function renderChosen(){const p=find(current);if(!p)return;byId('chosen').innerHTML=`<div><b>Sensoren</b><div style='margin-top:6px'>${(p.sensor_entities||[]).map(x=>`<span class='chip'>🟦 ${x}</span>`).join('')||"<span class='small'>-</span>"}</div></div><hr style='border-color:#2f4776'><div><b>Aktuatoren</b><div style='margin-top:6px'>${(p.actuator_entities||[]).map(x=>`<span class='chip'>🟩 ${x}</span>`).join('')||"<span class='small'>-</span>"}</div></div>`}
 async function analyze(){if(!current)return;const d=await api('/api/projects/'+current+'/analyze','POST',{});Object.assign(find(current),d.project);renderSuggestions();loadGraph()}
-function renderSuggestions(){const p=find(current);if(!p)return;const sugs=p.last_suggestions||[];byId('sugs').innerHTML=!sugs.length?"<div class='small'>Noch keine Vorschläge. Klicken Sie auf Analyse.</div>":sugs.map(s=>`<div class='item'><b>${s.title}</b><div class='small'>${s.reason} · conf ${s.confidence}</div><div class='small'>${s.will_execute?"<span class='warn'>LIVE ACTION</span>":"<span class='ok'>Shadow only</span>"}</div><div class='grid2' style='margin-top:6px'><button onclick='fb("${s.id}",1)'>👍 Gut</button><button onclick='fb("${s.id}",-1)'>👎 Nein</button></div></div>`).join('')}
+function renderSuggestions(){const p=find(current);if(!p)return;const sugs=p.last_suggestions||[];byId('sugs').innerHTML=!sugs.length?"<div class='small'>Noch keine Vorschläge. Klicken Sie auf Analyse.</div>":sugs.map(s=>`<div class='item'><b>${s.title}</b><div class='small'>${s.reason} · conf ${s.confidence}</div><div class='small'>${s.will_execute?"<span class='warn'>LIVE ACTION</span>":"<span class='ok'>Shadow only</span>"}</div><div class='grid2' style='margin-top:6px'><button data-action='feedback' data-sid='${s.id}' data-vote='1'>👍 Gut</button><button data-action='feedback' data-sid='${s.id}' data-vote='-1'>👎 Nein</button></div></div>`).join('')}
 async function fb(id,v){if(!current)return;await api('/api/projects/'+current+'/feedback','POST',{suggestion_id:id,vote:v});alert('Feedback gespeichert')}
 async function loadGraph(){if(!current)return;const g=await api('/api/projects/'+current+'/nn-graph');const svg=byId('graph');svg.innerHTML='';const W=svg.clientWidth||900,H=340,map={};(g.nodes||[]).forEach((n,i)=>{let x=50,y=40+i*20;if(n.kind==='core'){x=W/2;y=H/2}else if(n.kind==='sensor'){x=120;y=28+(i*22)%300}else{x=W-180;y=28+(i*22)%300}map[n.id]={x,y,n}});(g.edges||[]).forEach(e=>{const a=map[e.from],b=map[e.to];if(!a||!b)return;const l=document.createElementNS('http://www.w3.org/2000/svg','line');l.setAttribute('x1',a.x);l.setAttribute('y1',a.y);l.setAttribute('x2',b.x);l.setAttribute('y2',b.y);l.setAttribute('stroke','#5b7fc8');l.setAttribute('stroke-width',String(1+2*(e.weight||0.5)));svg.appendChild(l)});Object.values(map).forEach(({x,y,n})=>{const c=document.createElementNS('http://www.w3.org/2000/svg','circle');c.setAttribute('cx',x);c.setAttribute('cy',y);c.setAttribute('r',n.kind==='core'?12:6);c.setAttribute('fill',n.kind==='core'?'#85ffd0':n.kind==='sensor'?'#78a8ff':'#ffd28a');svg.appendChild(c);const t=document.createElementNS('http://www.w3.org/2000/svg','text');t.setAttribute('x',x+10);t.setAttribute('y',y+3);t.setAttribute('fill','#d7e6ff');t.setAttribute('font-size','10');t.textContent=n.label;svg.appendChild(t)})}
+document.addEventListener('click', async (ev)=>{
+  const btn = ev.target.closest('button[data-action]');
+  if(!btn) return;
+  const a = btn.dataset.action;
+  try {
+    if(a==='create-project') return await createProject();
+    if(a==='refresh-projects') return await refreshProjects();
+    if(a==='rename-project') return await renameProject();
+    if(a==='delete-project') return await deleteProject();
+    if(a==='toggle-shadow') return await toggleShadow();
+    if(a==='analyze') return await analyze();
+    if(a==='add-entity') return await addEntity(btn.dataset.kind);
+    if(a==='feedback') return await fb(btn.dataset.sid, Number(btn.dataset.vote||0));
+  } catch(e){ showErr(e); }
+});
+
 boot();

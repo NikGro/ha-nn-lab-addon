@@ -23,18 +23,18 @@ button{cursor:pointer;background:linear-gradient(135deg,#24508f,#c9852d)} .grid2
 <div class='shell'>
   <aside>
     <div class='brand'><h1>HA NN Lab</h1><p>Mobile-first Neural Automation Workbench</p></div>
-    <div class='card'><div class='small'>Neues Projekt</div><input id='newName' value='Neues NN Projekt'><div class='grid2' style='margin-top:8px'><button onclick='createProject()'>+ Anlegen</button><button onclick='refreshProjects()'>↻ Reload</button></div></div>
+    <div class='card'><div class='small'>Neues Projekt</div><input id='newName' value='Neues NN Projekt'><div class='grid2' style='margin-top:8px'><button data-action='create-project'>+ Anlegen</button><button data-action='refresh-projects'>↻ Reload</button></div></div>
     <div class='card'><div class='title'>Projekte</div><div id='plist' class='list'></div></div>
   </aside>
   <main>
     <section class='card'>
-      <div class='toolbar'><h3 id='pname' class='title' style='margin-right:auto'>Kein Projekt gewählt</h3><button onclick='renameProject()'>Umbenennen</button><button onclick='deleteProject()'>Löschen</button><button id='shadowBtn' onclick='toggleShadow()'>Shadow: ON</button><button onclick='analyze()'>Analyse</button></div>
+      <div class='toolbar'><h3 id='pname' class='title' style='margin-right:auto'>Kein Projekt gewählt</h3><button data-action='rename-project'>Umbenennen</button><button data-action='delete-project'>Löschen</button><button id='shadowBtn' data-action='toggle-shadow'>Shadow: ON</button><button data-action='analyze'>Analyse</button></div>
       <div style='margin-top:8px'><label><input type='checkbox' id='allSensors' onchange='saveToggles()' style='width:auto;margin-right:6px'>alle Sensoren berücksichtigen</label><br><label><input type='checkbox' id='allActs' onchange='saveToggles()' style='width:auto;margin-right:6px'>alle Aktuatoren berücksichtigen</label></div>
       <div class='small' style='margin-top:6px'>Shadow Mode ist pro Projekt separat, standardmäßig AN.</div>
     </section>
     <section class='card'>
       <div class='title'>Entity Auswahl</div>
-      <div class='grid2'><div><div class='small'>Sensor hinzufügen</div><select id='sensorSel'></select><button onclick="addEntity('sensor')" style='margin-top:6px'>+ Sensor</button></div><div><div class='small'>Aktuator hinzufügen</div><select id='actSel'></select><button onclick="addEntity('actuator')" style='margin-top:6px'>+ Aktuator</button></div></div>
+      <div class='grid2'><div><div class='small'>Sensor hinzufügen</div><select id='sensorSel'></select><button data-action='add-entity' data-kind='sensor' style='margin-top:6px'>+ Sensor</button></div><div><div class='small'>Aktuator hinzufügen</div><select id='actSel'></select><button data-action='add-entity' data-kind='actuator' style='margin-top:6px'>+ Aktuator</button></div></div>
       <div class='list' id='chosen' style='margin-top:10px'></div>
     </section>
     <section class='card'><div class='title'>NN Vorschläge & Feedback</div><div id='sugs'></div></section>
