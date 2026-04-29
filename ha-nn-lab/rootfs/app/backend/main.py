@@ -124,12 +124,12 @@ def _suggestions(project: dict[str, Any], states_map: dict[str, dict[str, Any]])
             {
                 "id": uuid.uuid4().hex[:8],
                 "type": "action_proposal",
-                "title": "Wohnzimmer Lichtgruppe einschalten",
+                "title": "Wohnzimmer Bewegung=on + Helligkeit<30 lux → Lichtgruppe auf 35%",
                 "service": "light.turn_on",
                 "target": {"entity_id": "light.wohnzimmer_lichtgruppe"},
                 "data": {"brightness_pct": 35},
                 "confidence": 0.76,
-                "reason": "Bewegung erkannt + niedrige Helligkeit",
+                "reason": "Trigger: binary_sensor.wohnzimmer_bewegungsmelder_occupancy wechselte auf on; Kontext: sensor.wohnzimmer_bewegungsmelder_illuminance ist niedrig und light.wohnzimmer_lichtgruppe ist aus.",
                 "will_execute": not project.get("shadow_mode", True),
             }
         )
@@ -141,12 +141,12 @@ def _suggestions(project: dict[str, Any], states_map: dict[str, dict[str, Any]])
             {
                 "id": uuid.uuid4().hex[:8],
                 "type": "action_proposal",
-                "title": "Staubsauger-Blocker aktivieren",
+                "title": "Saugroboter Status=cleaning/returning → Staubsauger-Blocker einschalten",
                 "service": "input_boolean.turn_on",
                 "target": {"entity_id": "input_boolean.staubsauger_blocker"},
                 "data": {},
                 "confidence": 0.83,
-                "reason": "Saugroboter aktiv ohne Blocker",
+                "reason": "Trigger: vacuum.s7_maxv ist aktiv; Folgeprävention: input_boolean.staubsauger_blocker auf on setzen, damit Bewegungsmelder-Bias reduziert wird.",
                 "will_execute": not project.get("shadow_mode", True),
             }
         )
@@ -161,12 +161,12 @@ def _suggestions(project: dict[str, Any], states_map: dict[str, dict[str, Any]])
                     {
                         "id": uuid.uuid4().hex[:8],
                         "type": "action_proposal",
-                        "title": f"Energie-Check für {eid}",
+                        "title": f"Fallback: {eid} bei Inaktivität auf aus prüfen",
                         "service": f"{dom}.turn_off",
                         "target": {"entity_id": eid},
                         "data": {},
                         "confidence": 0.51,
-                        "reason": "Fallback-Heuristik: bei Inaktivität abschalten prüfen",
+                        "reason": f"Keine starke Primärregel aktiv. Vorschlag basiert auf Zustandsänderungs-Historie des Aktuators {eid} und Energiespar-Heuristik.",
                         "will_execute": not project.get("shadow_mode", True),
                     }
                 )
@@ -175,12 +175,12 @@ def _suggestions(project: dict[str, Any], states_map: dict[str, dict[str, Any]])
                     {
                         "id": uuid.uuid4().hex[:8],
                         "type": "action_proposal",
-                        "title": f"Komfort-Check für {eid}",
+                        "title": f"Fallback: {eid} auf Komfort-Grundzustand prüfen",
                         "service": f"{dom}.set_temperature" if dom == "climate" else f"{dom}.turn_on",
                         "target": {"entity_id": eid},
                         "data": {"temperature": 21} if dom == "climate" else {},
                         "confidence": 0.49,
-                        "reason": "Fallback-Heuristik: Grundzustand validieren",
+                        "reason": f"Keine starke Primärregel aktiv. Vorschlag basiert auf Zustandskorrelationen für {eid} und Komfort-Heuristik.",
                         "will_execute": not project.get("shadow_mode", True),
                     }
                 )
@@ -320,6 +320,9 @@ async def feedback(pid: str, payload: dict[str, Any]) -> dict[str, Any]:
             "note": payload.get("note", ""),
         }
     )
+    sid = payload.get("suggestion_id")
+    if sid:
+        p["last_suggestions"] = [s for s in (p.get("last_suggestions") or []) if s.get("id") != sid]
     p["updated_at"] = _now()
     _save_projects(projects)
     return {"ok": True}

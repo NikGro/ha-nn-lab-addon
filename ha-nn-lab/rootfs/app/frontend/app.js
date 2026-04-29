@@ -39,8 +39,7 @@ function selectProject(id){
   const p=find(id);if(!p)return;
   byId('pname').textContent=p.name;
   byId('shadowBtn').textContent='Shadow: '+(p.shadow_mode?'ON':'OFF');
-  byId('allSensors').checked=!!p.include_all_sensors;
-  byId('allActs').checked=!!p.include_all_actuators;
+  byId('allEntities').checked=!!(p.include_all_sensors && p.include_all_actuators);
   updateStats(p);
   updateManualEntityVisibility(p);
   renderChosen();renderSuggestions();loadGraph();renderProjectList();
@@ -59,7 +58,7 @@ function updateStats(p){
 function updateManualEntityVisibility(p){
   const box=byId('manualEntityBox');
   if(!box) return;
-  const hide = !!p.include_all_sensors || !!p.include_all_actuators;
+  const hide = !!(p.include_all_sensors && p.include_all_actuators);
   box.style.display = hide ? 'none' : 'grid';
 }
 async function createProject(){try{const p=await api('/api/projects','POST',{name:byId('newName').value||'Neues NN Projekt'});projects.push(p);renderProjectList();selectProject(p.id)}catch(e){showErr(e)}}
@@ -68,10 +67,11 @@ async function deleteProject(){if(!current||!confirm('Projekt löschen?'))return
 async function toggleShadow(){if(!current)return;const p=find(current);Object.assign(p,await api('/api/projects/'+current,'PATCH',{shadow_mode:!p.shadow_mode}));selectProject(current)}
 async function saveToggles(){
   if(!current)return;
-  Object.assign(find(current),await api('/api/projects/'+current,'PATCH',{include_all_sensors:byId('allSensors').checked,include_all_actuators:byId('allActs').checked}));
+  const all = byId('allEntities').checked;
+  Object.assign(find(current),await api('/api/projects/'+current,'PATCH',{include_all_sensors:all,include_all_actuators:all}));
   updateManualEntityVisibility(find(current));
   // when using all-entities mode, refresh immediately from backend
-  if(byId('allSensors').checked || byId('allActs').checked){
+  if(all){
     await analyze();
   }
 }
@@ -93,10 +93,56 @@ let graphView={x:0,y:0,w:800,h:340};
 function renderGraphData(g){
   const svg=byId('graph');
   svg.innerHTML='';
-  const W=svg.clientWidth||900,H=340,map={};
-  (g.nodes||[]).forEach((n,i)=>{let x=50,y=40+i*20;if(n.kind==='core'){x=W/2;y=H/2}else if(n.kind==='sensor'){x=120;y=28+(i*22)%300}else{x=W-180;y=28+(i*22)%300}map[n.id]={x,y,n}});
-  (g.edges||[]).forEach(e=>{const a=map[e.from],b=map[e.to];if(!a||!b)return;const l=document.createElementNS('http://www.w3.org/2000/svg','line');l.setAttribute('x1',a.x);l.setAttribute('y1',a.y);l.setAttribute('x2',b.x);l.setAttribute('y2',b.y);l.setAttribute('stroke','#5b7fc8');l.setAttribute('stroke-width',String(1+2*(e.weight||0.5)));svg.appendChild(l)});
-  Object.values(map).forEach(({x,y,n})=>{const c=document.createElementNS('http://www.w3.org/2000/svg','circle');c.setAttribute('cx',x);c.setAttribute('cy',y);c.setAttribute('r',n.kind==='core'?12:6);c.setAttribute('fill',n.kind==='core'?'#85ffd0':n.kind==='sensor'?'#78a8ff':'#ffd28a');svg.appendChild(c);const t=document.createElementNS('http://www.w3.org/2000/svg','text');t.setAttribute('x',x+10);t.setAttribute('y',y+3);t.setAttribute('fill','#d7e6ff');t.setAttribute('font-size','10');t.textContent=n.label;svg.appendChild(t)});
+  const W=svg.clientWidth||900,H=360,map={};
+  const nodes=g.nodes||[];
+  const sensors=nodes.filter(n=>n.kind==='sensor');
+  const acts=nodes.filter(n=>n.kind==='actuator');
+  const core=nodes.find(n=>n.kind==='core')||{id:'policy_core',label:'core',kind:'core'};
+  map[core.id]={x:W/2,y:H/2,n:core};
+
+  const placeArc=(arr,side)=>{
+    const R=Math.min(W,H)*0.36;
+    const span=Math.PI*0.9;
+    arr.forEach((n,i)=>{
+      const t=arr.length===1?0.5:i/(arr.length-1);
+      const ang=(side==='left'?Math.PI:0)+(t-0.5)*span;
+      const x=W/2+Math.cos(ang)*R;
+      const y=H/2+Math.sin(ang)*R*0.85;
+      map[n.id]={x,y,n};
+    });
+  };
+  placeArc(sensors,'left');
+  placeArc(acts,'right');
+
+  (g.edges||[]).forEach(e=>{
+    const a=map[e.from],b=map[e.to];if(!a||!b)return;
+    const p=document.createElementNS('http://www.w3.org/2000/svg','path');
+    const mx=(a.x+b.x)/2;
+    const c1x=(a.x+mx)/2, c1y=a.y;
+    const c2x=(b.x+mx)/2, c2y=b.y;
+    p.setAttribute('d',`M ${a.x} ${a.y} C ${c1x} ${c1y}, ${c2x} ${c2y}, ${b.x} ${b.y}`);
+    p.setAttribute('fill','none');
+    p.setAttribute('stroke','#5b7fc8');
+    p.setAttribute('stroke-opacity','0.6');
+    p.setAttribute('stroke-width',String(1+2*(e.weight||0.5)));
+    svg.appendChild(p);
+  });
+
+  Object.values(map).forEach(({x,y,n})=>{
+    const c=document.createElementNS('http://www.w3.org/2000/svg','circle');
+    c.setAttribute('cx',x);c.setAttribute('cy',y);c.setAttribute('r',n.kind==='core'?14:6);
+    c.setAttribute('fill',n.kind==='core'?'#85ffd0':n.kind==='sensor'?'#78a8ff':'#ffd28a');
+    svg.appendChild(c);
+    const t=document.createElementNS('http://www.w3.org/2000/svg','text');
+    const left=(n.kind==='sensor');
+    t.setAttribute('x',left?x-10:x+10);
+    t.setAttribute('y',y+3);
+    t.setAttribute('text-anchor',left?'end':'start');
+    t.setAttribute('fill','#d7e6ff');
+    t.setAttribute('font-size','10');
+    t.textContent=n.label;
+    svg.appendChild(t);
+  });
   graphView={x:0,y:0,w:W,h:H};
   svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
 }
@@ -175,7 +221,7 @@ document.addEventListener('click', async (ev)=>{
 document.addEventListener('change', async (ev)=>{
   const t=ev.target;
   if(!t) return;
-  if(t.id==='allSensors' || t.id==='allActs'){
+  if(t.id==='allEntities'){
     try{ await saveToggles(); }catch(e){ showErr(e); }
   }
 });
