@@ -41,19 +41,48 @@ function selectProject(id){
   byId('shadowBtn').textContent='Shadow: '+(p.shadow_mode?'ON':'OFF');
   byId('allSensors').checked=!!p.include_all_sensors;
   byId('allActs').checked=!!p.include_all_actuators;
+  updateStats(p);
+  updateManualEntityVisibility(p);
   renderChosen();renderSuggestions();loadGraph();renderProjectList();
+}
+
+function updateStats(p){
+  const s=(p.sensor_entities||[]).length;
+  const a=(p.actuator_entities||[]).length;
+  const v=(p.last_suggestions||[]).length;
+  const ss=byId('statSensors'), aa=byId('statActs'), vv=byId('statSugs');
+  if(ss) ss.textContent=String(s);
+  if(aa) aa.textContent=String(a);
+  if(vv) vv.textContent=String(v);
+}
+
+function updateManualEntityVisibility(p){
+  const box=byId('manualEntityBox');
+  if(!box) return;
+  const hide = !!p.include_all_sensors || !!p.include_all_actuators;
+  box.style.display = hide ? 'none' : 'grid';
 }
 async function createProject(){try{const p=await api('/api/projects','POST',{name:byId('newName').value||'Neues NN Projekt'});projects.push(p);renderProjectList();selectProject(p.id)}catch(e){showErr(e)}}
 async function renameProject(){if(!current)return;const p=find(current);const n=prompt('Neuer Name',p.name);if(!n)return;Object.assign(p,await api('/api/projects/'+current,'PATCH',{name:n}));renderProjectList();selectProject(current)}
 async function deleteProject(){if(!current||!confirm('Projekt löschen?'))return;await api('/api/projects/'+current,'DELETE');projects=projects.filter(x=>x.id!==current);current=null;renderProjectList();if(projects[0])selectProject(projects[0].id)}
 async function toggleShadow(){if(!current)return;const p=find(current);Object.assign(p,await api('/api/projects/'+current,'PATCH',{shadow_mode:!p.shadow_mode}));selectProject(current)}
-async function saveToggles(){if(!current)return;Object.assign(find(current),await api('/api/projects/'+current,'PATCH',{include_all_sensors:byId('allSensors').checked,include_all_actuators:byId('allActs').checked}))}
-async function addEntity(k){if(!current)return;const p=find(current),key=k==='sensor'?'sensor_entities':'actuator_entities',sel=byId(k==='sensor'?'sensorSel':'actSel');const set=new Set(p[key]||[]);set.add(sel.value);const payload={};payload[key]=[...set];Object.assign(p,await api('/api/projects/'+current,'PATCH',payload));renderChosen();loadGraph()}
+async function saveToggles(){
+  if(!current)return;
+  Object.assign(find(current),await api('/api/projects/'+current,'PATCH',{include_all_sensors:byId('allSensors').checked,include_all_actuators:byId('allActs').checked}));
+  updateManualEntityVisibility(find(current));
+  // when using all-entities mode, refresh immediately from backend
+  if(byId('allSensors').checked || byId('allActs').checked){
+    await analyze();
+  }
+}
+async function addEntity(k){if(!current)return;const p=find(current),key=k==='sensor'?'sensor_entities':'actuator_entities',sel=byId(k==='sensor'?'sensorSel':'actSel');const set=new Set(p[key]||[]);set.add(sel.value);const payload={};payload[key]=[...set];Object.assign(p,await api('/api/projects/'+current,'PATCH',payload));updateStats(p);renderChosen();loadGraph()}
 function renderChosen(){const p=find(current);if(!p)return;byId('chosen').innerHTML=`<div><b>Sensoren</b><div style='margin-top:6px'>${(p.sensor_entities||[]).map(x=>`<span class='chip'>🟦 ${x}</span>`).join('')||"<span class='small'>-</span>"}</div></div><hr style='border-color:#2f4776'><div><b>Aktuatoren</b><div style='margin-top:6px'>${(p.actuator_entities||[]).map(x=>`<span class='chip'>🟩 ${x}</span>`).join('')||"<span class='small'>-</span>"}</div></div>`}
 async function analyze(){
   if(!current)return;
   const d=await api('/api/projects/'+current+'/analyze','POST',{});
   Object.assign(find(current),d.project);
+  updateStats(find(current));
+  updateManualEntityVisibility(find(current));
   renderChosen();
   renderSuggestions();
   loadGraph();
@@ -96,6 +125,36 @@ function initGraphInteraction(){
     graphView={x:0,y:0,w:svg.clientWidth||900,h:340};
     svg.setAttribute('viewBox',`0 0 ${graphView.w} ${graphView.h}`);
   });
+
+  // touch pan + pinch zoom for mobile
+  let touchMode=null, tStartDist=0, tStartView=null, tLast={x:0,y:0};
+  const dist=(a,b)=>Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY);
+  svg.addEventListener('touchstart',(e)=>{
+    if(e.touches.length===1){
+      touchMode='pan';
+      tLast={x:e.touches[0].clientX,y:e.touches[0].clientY};
+    } else if(e.touches.length===2){
+      touchMode='pinch';
+      tStartDist=dist(e.touches[0],e.touches[1]);
+      tStartView={...graphView};
+    }
+  },{passive:true});
+  svg.addEventListener('touchmove',(e)=>{
+    if(touchMode==='pan' && e.touches.length===1){
+      const t=e.touches[0];
+      const dx=(t.clientX-tLast.x)*(graphView.w/(svg.clientWidth||1));
+      const dy=(t.clientY-tLast.y)*(graphView.h/(svg.clientHeight||1));
+      graphView.x-=dx; graphView.y-=dy; tLast={x:t.clientX,y:t.clientY};
+      svg.setAttribute('viewBox',`${graphView.x} ${graphView.y} ${graphView.w} ${graphView.h}`);
+    } else if(touchMode==='pinch' && e.touches.length===2){
+      const d=dist(e.touches[0],e.touches[1]);
+      const factor=Math.max(0.5,Math.min(2.0,tStartDist/d));
+      graphView.w=Math.max(120,Math.min(3000,tStartView.w*factor));
+      graphView.h=Math.max(90,Math.min(2000,tStartView.h*factor));
+      svg.setAttribute('viewBox',`${graphView.x} ${graphView.y} ${graphView.w} ${graphView.h}`);
+    }
+  },{passive:true});
+  svg.addEventListener('touchend',()=>{ touchMode=null; },{passive:true});
 }
 document.addEventListener('click', async (ev)=>{
   const btn = ev.target.closest('button[data-action]');

@@ -6,7 +6,7 @@
   <title>HA NN Lab — Neural Automation Workbench</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet">
   <style>
     :root{
       --bg:#0a0e0c;--bg2:#0d1311;--panel:#0f1714;--panel2:#121d18;
@@ -17,7 +17,7 @@
     html,body{margin:0;padding:0}
     body{
       color:var(--ink);
-      font-family:'Fraunces',Georgia,serif;
+      font-family:'JetBrains Mono',monospace;
       background:
         radial-gradient(1200px 600px at 100% -10%, #14241c 0%, transparent 60%),
         radial-gradient(900px 500px at -10% 110%, #1c1a10 0%, transparent 65%),
@@ -38,12 +38,12 @@
     aside{border-right:1px solid var(--line);padding:16px;background:#0f1827bd;backdrop-filter:blur(8px);max-height:100dvh;overflow:auto}
     .brand{display:flex;align-items:flex-start;gap:12px;padding:6px 4px 14px;border-bottom:1px solid var(--line)}
     .brand-mark{width:40px;height:40px;border-radius:8px;background:radial-gradient(circle at 30% 30%, var(--phos) 0%, var(--phos2) 52%, #0d1311 100%);box-shadow:0 0 18px -8px var(--phos)}
-    .brand h1{margin:0;font:800 1.5rem/1 'Fraunces',serif;letter-spacing:-.02em}
+    .brand h1{margin:0;font:800 1.35rem/1 'JetBrains Mono',monospace;letter-spacing:0}
     .brand p{margin:.35rem 0 0;font:500 .66rem 'JetBrains Mono',monospace;letter-spacing:.16em;text-transform:uppercase;color:var(--ink3)}
 
     .card{background:var(--panel);border:1px solid var(--line2);border-radius:12px;padding:12px;margin-top:12px}
     .small{font:500 .72rem 'JetBrains Mono',monospace;color:var(--ink3);letter-spacing:.1em;text-transform:uppercase}
-    .title{font:700 1.02rem 'Fraunces',serif;margin:0 0 8px}
+    .title{font:800 1rem 'JetBrains Mono',monospace;margin:0 0 8px}
 
     input,select,button{width:100%;padding:10px;border-radius:8px;border:1px solid #35537f;background:#0d1728;color:var(--ink);font:500 .86rem 'JetBrains Mono',monospace}
     input:focus,select:focus{outline:none;border-color:var(--phos2);box-shadow:0 0 0 2px #7af6a82a}
@@ -57,11 +57,11 @@
 
     main{padding:22px 18px 60px;min-width:0}
     .hero{display:grid;grid-template-columns:1fr auto;gap:18px;align-items:end;padding:8px 0 18px;border-bottom:1px solid var(--line);margin-bottom:14px}
-    .hero h2{margin:0;font:800 clamp(1.6rem,4vw,2.8rem)/.96 'Fraunces',serif}
-    .hero h2 em{font-style:italic;font-weight:400;color:var(--phos)}
+    .hero h2{margin:0;font:800 clamp(1.2rem,3.4vw,2.2rem)/1.05 'JetBrains Mono',monospace}
+    .hero h2 em{font-style:normal;font-weight:800;color:var(--phos)}
     .hero .lede{margin-top:8px;font:500 .72rem 'JetBrains Mono',monospace;color:var(--ink2)}
     .stat{font:500 .7rem 'JetBrains Mono',monospace;color:var(--ink2)}
-    .stat b{display:block;font:800 1.35rem/1 'Fraunces',serif;color:var(--ink)}
+    .stat b{display:block;font:800 1.25rem/1 'JetBrains Mono',monospace;color:var(--ink)}
 
     .toolbar{display:flex;flex-wrap:wrap;gap:8px;padding:12px;background:var(--panel);border:1px solid var(--line);border-radius:10px;margin-bottom:14px}
     .toolbar button{width:auto}
@@ -134,7 +134,7 @@
         <div class="col">
           <section class="card">
             <div class="title">Entity Auswahl</div>
-            <div class="grid2">
+            <div class="grid2" id="manualEntityBox">
               <div>
                 <div class="small">Sensor hinzufügen</div>
                 <select id="sensorSel"></select>

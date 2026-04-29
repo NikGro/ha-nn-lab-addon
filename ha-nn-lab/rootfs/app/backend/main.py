@@ -151,6 +151,54 @@ def _suggestions(project: dict[str, Any], states_map: dict[str, dict[str, Any]])
             }
         )
 
+    # Generic fallback suggestions so first runs always produce actionable insights.
+    if not sugs:
+        selected_acts = list(project.get("actuator_entities", []) or [])[:4]
+        for eid in selected_acts:
+            dom = eid.split(".", 1)[0]
+            if dom in {"light", "switch"}:
+                sugs.append(
+                    {
+                        "id": uuid.uuid4().hex[:8],
+                        "type": "action_proposal",
+                        "title": f"Energie-Check für {eid}",
+                        "service": f"{dom}.turn_off",
+                        "target": {"entity_id": eid},
+                        "data": {},
+                        "confidence": 0.51,
+                        "reason": "Fallback-Heuristik: bei Inaktivität abschalten prüfen",
+                        "will_execute": not project.get("shadow_mode", True),
+                    }
+                )
+            elif dom in {"climate", "fan"}:
+                sugs.append(
+                    {
+                        "id": uuid.uuid4().hex[:8],
+                        "type": "action_proposal",
+                        "title": f"Komfort-Check für {eid}",
+                        "service": f"{dom}.set_temperature" if dom == "climate" else f"{dom}.turn_on",
+                        "target": {"entity_id": eid},
+                        "data": {"temperature": 21} if dom == "climate" else {},
+                        "confidence": 0.49,
+                        "reason": "Fallback-Heuristik: Grundzustand validieren",
+                        "will_execute": not project.get("shadow_mode", True),
+                    }
+                )
+        if not sugs:
+            sugs.append(
+                {
+                    "id": uuid.uuid4().hex[:8],
+                    "type": "observation",
+                    "title": "Noch keine robuste Aktion ableitbar",
+                    "service": None,
+                    "target": {},
+                    "data": {},
+                    "confidence": 0.34,
+                    "reason": "Mehr Feedback/Verlauf verbessert die Policy",
+                    "will_execute": False,
+                }
+            )
+
     return sugs
 
 
