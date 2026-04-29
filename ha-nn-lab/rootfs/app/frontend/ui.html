@@ -1,46 +1,173 @@
 <!doctype html>
-<html lang='de'>
+<html lang="de">
 <head>
-<meta charset='utf-8'>
-<meta name='viewport' content='width=device-width,initial-scale=1,viewport-fit=cover'>
-<title>HA NN Lab</title>
-<style>
-:root{--bg:#0b1020;--bg2:#101933;--card:#131f3ddd;--line:#2f487c;--text:#edf3ff;--muted:#9db1d8;--a:#5aa8ff;--b:#ffb347;--ok:#8bffbc;--warn:#ffd084}
-*{box-sizing:border-box} body{margin:0;color:var(--text);font-family:'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;background:radial-gradient(75rem 42rem at 120% -10%,#3457b355 0,transparent 60%),radial-gradient(60rem 30rem at -10% 20%,#8a5d1d55 0,transparent 65%),linear-gradient(170deg,var(--bg) 0%,#0d1420 45%,var(--bg2) 100%)}
-.shell{display:grid;grid-template-columns:320px 1fr;min-height:100dvh} aside{border-right:1px solid var(--line);padding:16px;background:#0f1827bd;backdrop-filter:blur(10px)} main{padding:14px 14px 40px}
-.brand h1{margin:0;font:700 clamp(1.2rem,3.6vw,1.8rem) 'Segoe UI',Roboto,Arial,sans-serif}.brand p{margin:.4rem 0 0;color:var(--muted);font-size:.84rem}
-.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;margin-top:12px;box-shadow:0 10px 24px #00000045}
-.small{font-size:.78rem;color:var(--muted)}
-input,select,button{width:100%;padding:10px;border-radius:10px;border:1px solid #35537f;background:#0d1728;color:var(--text);font:500 .9rem 'Segoe UI',Roboto,Arial,sans-serif}
-button{cursor:pointer;background:linear-gradient(135deg,#24508f,#c9852d)} .grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.list{max-height:220px;overflow:auto;border:1px dashed #3a5788;border-radius:10px;padding:8px;background:#0b1423}.item{padding:8px;border-bottom:1px solid #223554}.item:last-child{border-bottom:none}
-.title{font:700 1.06rem 'Segoe UI',Roboto,Arial,sans-serif;margin:0 0 8px}.chip{display:inline-block;border:1px solid #3d5f90;border-radius:999px;padding:3px 9px;font-size:.74rem;margin:0 6px 6px 0}
-.ok{color:var(--ok)} .warn{color:var(--warn)} svg{width:100%;height:360px;border:1px solid #2e4672;border-radius:12px;background:#0b1322}
-.toolbar{display:flex;gap:8px;flex-wrap:wrap}.toolbar button{width:auto;padding:9px 12px}
-@media (max-width:980px){.shell{grid-template-columns:1fr}aside{position:sticky;top:0;z-index:3;border-right:none;border-bottom:1px solid var(--line)}.grid2{grid-template-columns:1fr}svg{height:280px}}
-</style>
-</head><body>
-<div class='shell'>
-  <aside>
-    <div class='brand'><h1>HA NN Lab</h1><p>Mobile-first Neural Automation Workbench</p></div>
-    <div class='card'><div class='small'>Neues Projekt</div><input id='newName' value='Neues NN Projekt'><div class='grid2' style='margin-top:8px'><button data-action='create-project'>+ Anlegen</button><button data-action='refresh-projects'>↻ Reload</button></div></div>
-    <div class='card'><div class='title'>Projekte</div><div id='plist' class='list'></div></div>
-  </aside>
-  <main>
-    <section class='card'>
-      <div class='toolbar'><h3 id='pname' class='title' style='margin-right:auto'>Kein Projekt gewählt</h3><button data-action='rename-project'>Umbenennen</button><button data-action='delete-project'>Löschen</button><button id='shadowBtn' data-action='toggle-shadow'>Shadow: ON</button><button data-action='analyze'>Analyse</button></div>
-      <div style='margin-top:8px'><label><input type='checkbox' id='allSensors' onchange='saveToggles()' style='width:auto;margin-right:6px'>alle Sensoren berücksichtigen</label><br><label><input type='checkbox' id='allActs' onchange='saveToggles()' style='width:auto;margin-right:6px'>alle Aktuatoren berücksichtigen</label></div>
-      <div class='small' style='margin-top:6px'>Shadow Mode ist pro Projekt separat, standardmäßig AN.</div>
-    </section>
-    <section class='card'>
-      <div class='title'>Entity Auswahl</div>
-      <div class='grid2'><div><div class='small'>Sensor hinzufügen</div><select id='sensorSel'></select><button data-action='add-entity' data-kind='sensor' style='margin-top:6px'>+ Sensor</button></div><div><div class='small'>Aktuator hinzufügen</div><select id='actSel'></select><button data-action='add-entity' data-kind='actuator' style='margin-top:6px'>+ Aktuator</button></div></div>
-      <div class='list' id='chosen' style='margin-top:10px'></div>
-    </section>
-    <section class='card'><div class='title'>NN Vorschläge & Feedback</div><div id='sugs'></div></section>
-    <section class='card'><div class='title'>NN Visual (pro Projekt)</div><svg id='graph'></svg></section>
-  </main>
-</div>
-<script src='app.js'></script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>HA NN Lab — Neural Automation Workbench</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#0a0e0c;--bg2:#0d1311;--panel:#0f1714;--panel2:#121d18;
+      --line:#1d2a23;--line2:#27392e;--ink:#e8efe9;--ink2:#9bb0a3;--ink3:#5d7568;
+      --phos:#7af6a8;--phos2:#3ea76a;--amber:#f6c66b;--amber2:#c2902f;--rose:#f08a8a;
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;padding:0}
+    body{
+      color:var(--ink);
+      font-family:'Fraunces',Georgia,serif;
+      background:
+        radial-gradient(1200px 600px at 100% -10%, #14241c 0%, transparent 60%),
+        radial-gradient(900px 500px at -10% 110%, #1c1a10 0%, transparent 65%),
+        linear-gradient(180deg, var(--bg) 0%, var(--bg2) 100%);
+      min-height:100dvh;
+      overflow-x:hidden;
+    }
+    body::before{
+      content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+      background-image:
+        linear-gradient(rgba(122,246,168,.045) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(122,246,168,.045) 1px, transparent 1px);
+      background-size:24px 24px,24px 24px;
+      mask-image:radial-gradient(1200px 700px at 50% 30%, #000 30%, transparent 92%);
+    }
+    .shell{position:relative;z-index:2;display:grid;grid-template-columns:320px 1fr;min-height:100dvh}
 
-</body></html>
+    aside{border-right:1px solid var(--line);padding:16px;background:#0f1827bd;backdrop-filter:blur(8px)}
+    .brand{display:flex;align-items:flex-start;gap:12px;padding:6px 4px 14px;border-bottom:1px solid var(--line)}
+    .brand-mark{width:40px;height:40px;border-radius:8px;background:radial-gradient(circle at 30% 30%, var(--phos) 0%, var(--phos2) 52%, #0d1311 100%);box-shadow:0 0 18px -8px var(--phos)}
+    .brand h1{margin:0;font:800 1.5rem/1 'Fraunces',serif;letter-spacing:-.02em}
+    .brand p{margin:.35rem 0 0;font:500 .66rem 'JetBrains Mono',monospace;letter-spacing:.16em;text-transform:uppercase;color:var(--ink3)}
+
+    .card{background:var(--panel);border:1px solid var(--line2);border-radius:12px;padding:12px;margin-top:12px}
+    .small{font:500 .72rem 'JetBrains Mono',monospace;color:var(--ink3);letter-spacing:.1em;text-transform:uppercase}
+    .title{font:700 1.02rem 'Fraunces',serif;margin:0 0 8px}
+
+    input,select,button{width:100%;padding:10px;border-radius:8px;border:1px solid #35537f;background:#0d1728;color:var(--ink);font:500 .86rem 'JetBrains Mono',monospace}
+    input:focus,select:focus{outline:none;border-color:var(--phos2);box-shadow:0 0 0 2px #7af6a82a}
+    button{cursor:pointer;background:linear-gradient(135deg,#1e375d,#284a7d);transition:.14s ease}
+    button:hover{border-color:var(--phos2);color:var(--phos)}
+    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+
+    .plist{display:flex;flex-direction:column;gap:6px;max-height:42vh;overflow:auto}
+    .item{padding:8px;border:1px solid var(--line);border-radius:8px;background:#0d1512}
+
+    main{padding:22px 18px 60px;min-width:0}
+    .hero{display:grid;grid-template-columns:1fr auto;gap:18px;align-items:end;padding:8px 0 18px;border-bottom:1px solid var(--line);margin-bottom:14px}
+    .hero h2{margin:0;font:800 clamp(1.6rem,4vw,2.8rem)/.96 'Fraunces',serif}
+    .hero h2 em{font-style:italic;font-weight:400;color:var(--phos)}
+    .hero .lede{margin-top:8px;font:500 .72rem 'JetBrains Mono',monospace;color:var(--ink2)}
+    .stat{font:500 .7rem 'JetBrains Mono',monospace;color:var(--ink2)}
+    .stat b{display:block;font:800 1.35rem/1 'Fraunces',serif;color:var(--ink)}
+
+    .toolbar{display:flex;flex-wrap:wrap;gap:8px;padding:12px;background:var(--panel);border:1px solid var(--line);border-radius:10px;margin-bottom:14px}
+    .toolbar button{width:auto}
+
+    .cards{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    .col{display:flex;flex-direction:column;gap:14px;min-width:0}
+
+    .chip{display:inline-block;border:1px solid #3d5f90;border-radius:999px;padding:3px 8px;font:500 .68rem 'JetBrains Mono',monospace;margin:0 6px 6px 0}
+    .list{max-height:180px;overflow:auto;border:1px dashed #3a5788;border-radius:8px;padding:8px;background:#0b1423}
+    .ok{color:var(--phos)} .warn{color:var(--amber)}
+
+    svg{width:100%;height:360px;border:1px solid #2e4672;border-radius:10px;background:#0b1322}
+
+    @media (max-width:980px){
+      .shell{grid-template-columns:1fr}
+      aside{position:sticky;top:0;z-index:3;border-right:none;border-bottom:1px solid var(--line)}
+      .hero{grid-template-columns:1fr}
+      .cards{grid-template-columns:1fr}
+      svg{height:280px}
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <aside>
+      <div class="brand">
+        <div class="brand-mark"></div>
+        <div>
+          <h1>HA NN Lab</h1>
+          <p>Neural Automation</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="small">Neues Projekt</div>
+        <input id="newName" value="Neues NN Projekt" placeholder="Projektname…">
+        <div class="grid2" style="margin-top:8px">
+          <button data-action="create-project">+ Anlegen</button>
+          <button data-action="refresh-projects">↻ Reload</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="title">Projekte</div>
+        <div id="plist" class="plist"></div>
+      </div>
+    </aside>
+
+    <main>
+      <header class="hero">
+        <div>
+          <h2 id="pname">Kein Projekt <em>gewählt</em></h2>
+          <div class="lede" id="plede">Lege links ein neues Projekt an, um zu starten.</div>
+        </div>
+        <div style="display:flex;gap:14px;flex-wrap:wrap">
+          <div class="stat"><b id="statSensors">0</b>Sensoren</div>
+          <div class="stat"><b id="statActs">0</b>Aktuatoren</div>
+          <div class="stat"><b id="statSugs">0</b>Vorschläge</div>
+        </div>
+      </header>
+
+      <div class="toolbar">
+        <button data-action="rename-project">Umbenennen</button>
+        <button data-action="delete-project">Löschen</button>
+        <button id="shadowBtn" data-action="toggle-shadow">Shadow: ON</button>
+        <button data-action="analyze">Analyse starten</button>
+      </div>
+
+      <div class="cards">
+        <div class="col">
+          <section class="card">
+            <div class="title">Entity Auswahl</div>
+            <div class="grid2">
+              <div>
+                <div class="small">Sensor hinzufügen</div>
+                <select id="sensorSel"></select>
+                <button data-action="add-entity" data-kind="sensor" style="margin-top:6px">+ Sensor</button>
+              </div>
+              <div>
+                <div class="small">Aktuator hinzufügen</div>
+                <select id="actSel"></select>
+                <button data-action="add-entity" data-kind="actuator" style="margin-top:6px">+ Aktuator</button>
+              </div>
+            </div>
+            <div style="margin-top:10px">
+              <label><input type="checkbox" id="allSensors" style="width:auto" onchange="saveToggles()"> alle Sensoren berücksichtigen</label><br>
+              <label><input type="checkbox" id="allActs" style="width:auto" onchange="saveToggles()"> alle Aktuatoren berücksichtigen</label>
+            </div>
+            <div id="chosen" class="list" style="margin-top:10px"></div>
+          </section>
+
+          <section class="card">
+            <div class="title">NN Vorschläge & Feedback</div>
+            <div id="sugs"></div>
+          </section>
+        </div>
+
+        <div class="col">
+          <section class="card">
+            <div class="title">NN Visual (pro Projekt)</div>
+            <svg id="graph"></svg>
+          </section>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
