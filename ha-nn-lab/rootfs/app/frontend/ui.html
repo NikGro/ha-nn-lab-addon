@@ -4,20 +4,17 @@
 <meta charset='utf-8'>
 <meta name='viewport' content='width=device-width,initial-scale=1,viewport-fit=cover'>
 <title>HA NN Lab</title>
-<link rel='preconnect' href='https://fonts.googleapis.com'>
-<link rel='preconnect' href='https://fonts.gstatic.com' crossorigin>
-<link href='https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,800&family=IBM+Plex+Sans:wght@400;500;600&display=swap' rel='stylesheet'>
 <style>
-:root{--bg:#0a0f16;--bg2:#111a26;--card:#111a29d9;--line:#2c4367;--text:#edf4ff;--muted:#93a8c8;--a:#59e3ff;--b:#6f7cff;--ok:#8bffbc;--warn:#ffd084}
-*{box-sizing:border-box} body{margin:0;color:var(--text);font-family:'IBM Plex Sans',sans-serif;background:radial-gradient(75rem 42rem at 120% -10%,#2d3f8a55 0,transparent 60%),radial-gradient(60rem 30rem at -10% 20%,#1d7f8f66 0,transparent 65%),linear-gradient(170deg,var(--bg) 0%,#0d1420 45%,var(--bg2) 100%)}
+:root{--bg:#0b1020;--bg2:#101933;--card:#131f3ddd;--line:#2f487c;--text:#edf3ff;--muted:#9db1d8;--a:#5aa8ff;--b:#ffb347;--ok:#8bffbc;--warn:#ffd084}
+*{box-sizing:border-box} body{margin:0;color:var(--text);font-family:'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;background:radial-gradient(75rem 42rem at 120% -10%,#3457b355 0,transparent 60%),radial-gradient(60rem 30rem at -10% 20%,#8a5d1d55 0,transparent 65%),linear-gradient(170deg,var(--bg) 0%,#0d1420 45%,var(--bg2) 100%)}
 .shell{display:grid;grid-template-columns:320px 1fr;min-height:100dvh} aside{border-right:1px solid var(--line);padding:16px;background:#0f1827bd;backdrop-filter:blur(10px)} main{padding:14px 14px 40px}
-.brand h1{margin:0;font:800 clamp(1.2rem,3.6vw,1.8rem) 'Fraunces',serif}.brand p{margin:.4rem 0 0;color:var(--muted);font-size:.84rem}
+.brand h1{margin:0;font:700 clamp(1.2rem,3.6vw,1.8rem) 'Segoe UI',Roboto,Arial,sans-serif}.brand p{margin:.4rem 0 0;color:var(--muted);font-size:.84rem}
 .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;margin-top:12px;box-shadow:0 10px 24px #00000045}
 .small{font-size:.78rem;color:var(--muted)}
-input,select,button{width:100%;padding:10px;border-radius:10px;border:1px solid #35537f;background:#0d1728;color:var(--text);font:500 .9rem 'IBM Plex Sans',sans-serif}
-button{cursor:pointer;background:linear-gradient(135deg,#1e375d,#284a7d)} .grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+input,select,button{width:100%;padding:10px;border-radius:10px;border:1px solid #35537f;background:#0d1728;color:var(--text);font:500 .9rem 'Segoe UI',Roboto,Arial,sans-serif}
+button{cursor:pointer;background:linear-gradient(135deg,#24508f,#c9852d)} .grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .list{max-height:220px;overflow:auto;border:1px dashed #3a5788;border-radius:10px;padding:8px;background:#0b1423}.item{padding:8px;border-bottom:1px solid #223554}.item:last-child{border-bottom:none}
-.title{font:700 1.06rem 'Fraunces',serif;margin:0 0 8px}.chip{display:inline-block;border:1px solid #3d5f90;border-radius:999px;padding:3px 9px;font-size:.74rem;margin:0 6px 6px 0}
+.title{font:700 1.06rem 'Segoe UI',Roboto,Arial,sans-serif;margin:0 0 8px}.chip{display:inline-block;border:1px solid #3d5f90;border-radius:999px;padding:3px 9px;font-size:.74rem;margin:0 6px 6px 0}
 .ok{color:var(--ok)} .warn{color:var(--warn)} svg{width:100%;height:360px;border:1px solid #2e4672;border-radius:12px;background:#0b1322}
 .toolbar{display:flex;gap:8px;flex-wrap:wrap}.toolbar button{width:auto;padding:9px 12px}
 @media (max-width:980px){.shell{grid-template-columns:1fr}aside{position:sticky;top:0;z-index:3;border-right:none;border-bottom:1px solid var(--line)}.grid2{grid-template-columns:1fr}svg{height:280px}}
