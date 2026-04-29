@@ -1,0 +1,23 @@
+name: HA NN Lab
+version: "0.2.0"
+slug: ha_nn_lab
+description: Neural-network lab for Home Assistant with project management, shadow mode, and entity suggestions.
+url: https://github.com/NikGro/ha-nn-lab-addon
+arch:
+  - amd64
+  - aarch64
+  - armv7
+startup: services
+boot: auto
+init: false
+ingress: true
+ingress_port: 8110
+panel_icon: mdi:brain
+panel_title: HA NN Lab
+hassio_api: true
+homeassistant_api: true
+host_network: false
+options:
+  ha_url: "http://supervisor/core"
+schema:
+  ha_url: str
