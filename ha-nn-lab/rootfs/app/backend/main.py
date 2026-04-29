@@ -384,4 +384,5 @@ boot();
 
 @app.get("/", response_class=HTMLResponse)
 async def index() -> HTMLResponse:
-    return HTMLResponse(UI)
+    ui_path = Path(__file__).resolve().parent.parent / "frontend" / "ui.html"
+    return HTMLResponse(ui_path.read_text(encoding="utf-8"))
